@@ -34,7 +34,7 @@ public final class HotFix {
             try {
                 //copy fix.patch from asset tp app file folder
                 patchFilePath =  AssetUtils.copyAsset(context, PATCH_NAME, context.getFilesDir());
-                Log.d(TAG, "Copy patch file from asset to " + patchFilePath);
+                Log.i(TAG, "Copy patch file from asset to " + patchFilePath);
                 return  true;
             } catch (Exception ex){
                 return  false;
@@ -58,12 +58,12 @@ public final class HotFix {
 
         //check if the fix.patch exist in file folder
         if (patchFilePath != null && new File(patchFilePath).exists()) {
-            Log.d(TAG, "Begin patch!");
+            Log.i(TAG, "Begin patch!");
             try {
                 injectPatch(context, patchFilePath,  context.getFilesDir().getAbsolutePath());
-                Log.d(TAG, "End Patch!");
+                Log.i(TAG, "End Patch!");
             }catch (Exception ex){
-                Log.d(TAG, "Patch failed : " + ex.getMessage());
+                Log.i(TAG, "Patch failed : " + ex.getMessage());
             }
             return;
         }
