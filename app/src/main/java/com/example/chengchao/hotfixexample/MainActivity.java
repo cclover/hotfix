@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button btnBug;
     Button btnBugLib;
     Button btnFix;
+    Button btnRemove;
     TestClass tc;
 
     @Override
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnBug = (Button)findViewById(R.id.btnBug);
         btnBugLib = (Button)findViewById(R.id.btnBugLib);
         btnFix = (Button)findViewById(R.id.btnPatch);
+        btnRemove = (Button)findViewById(R.id.btnRemovePatch);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnBug.setOnClickListener(this);
         btnBugLib.setOnClickListener(this);
         btnFix.setOnClickListener(this);
-
+        btnRemove.setOnClickListener(this);
         tc = new TestClass();
     }
 
@@ -56,7 +58,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             showToast(view, tc.function());
         }else if(view.getId() == R.id.btnPatch){
             getPatch(view);
+        } else if(view.getId() == R.id.btnRemovePatch){
+            removePatch(view);
         }
+    }
+
+    private void removePatch(View view) {
+        HotFix.removePatch(getApplicationContext());
+        showToast(view,  "Remove patch file");
     }
 
     private  void getPatch(View view){
@@ -67,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             showToast(view,  "No patch file");
         }
     }
+
 
     private  void showToast(View view, String message){
         Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
