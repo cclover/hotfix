@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/HotFixExample.iml" filepath="$PROJECT_DIR$/HotFixExample.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/hotfixlib/hotfixlib.iml" filepath="$PROJECT_DIR$/hotfixlib/hotfixlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stubdex/stubdex.iml" filepath="$PROJECT_DIR$/stubdex/stubdex.iml" />
       <module fileurl="file://$PROJECT_DIR$/testlibrary/testlibrary.iml" filepath="$PROJECT_DIR$/testlibrary/testlibrary.iml" />
     </modules>
   </component>
