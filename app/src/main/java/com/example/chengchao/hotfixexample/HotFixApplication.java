@@ -16,9 +16,10 @@ public class HotFixApplication extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
 
+
         try {
             //Check patch
-            if(HotFix.hasPatch(base)) {
+            if(HotFix.init(base) && HotFix.hasPatch(base)) {
                 Log.d("HotFixApplication", "Has patch file, patch it!");
                 HotFix.patch(base);
             }else{

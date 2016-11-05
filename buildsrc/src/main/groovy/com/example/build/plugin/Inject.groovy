@@ -65,7 +65,7 @@ public class Inject {
 
 
             // jar包解压后的保存路径
-            String jarZipDir = jarFile.getParent() +"/"+jarFile.getName().replace('.jar','')
+            String jarZipDir = jarFile.getParent() +"/"+jarFile.getName().replace('.jar','')+"_cccccc"
 
             // 解压jar包, 返回jar包中所有class的完整类名的集合（带.class后缀）
             List classNameList = JarZipUtil.unzipJar(path, jarZipDir)
@@ -79,7 +79,8 @@ public class Inject {
                 if (className.endsWith(".class")
                         && !className.contains('R$')
                         && !className.contains('R.class')
-                        && !className.contains("BuildConfig.class")) {
+                        && !className.contains("BuildConfig.class")
+                        && !className.contains("hotfixlib")) {
                     className = className.substring(0, className.length()-6)
                     injectClass(className, jarZipDir)
                 }
@@ -89,7 +90,7 @@ public class Inject {
             JarZipUtil.zipJar(jarZipDir, path)
 
             // 删除目录
-            FileUtils.deleteDirectory(new File(jarZipDir))
+            //FileUtils.deleteDirectory(new File(jarZipDir))
         }
     }
 

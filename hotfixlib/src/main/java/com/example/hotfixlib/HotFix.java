@@ -22,23 +22,46 @@ public final class HotFix {
 
     public final static String TAG = "HOTFIX";
     public final static String PATCH_NAME = "patch.jar";
+    public final static String STUB_NAME = "stub.jar";
     public final static String DEXPATH_DEXELEMENTS = "dexElements";
     public final static String BASECLASSLOADER_PATHLIST = "pathList";
     public final static int SDK_INT = Build.VERSION.SDK_INT;
     public static String patchFilePath = null;
+    public static String stubFilePath = null;
 
 
+    public static boolean init(Context context){
+
+        // May crash above N caused by hybrid compile
+        if(SDK_INT >= Build.VERSION_CODES.N){
+            Log.w(TAG, "Current not support on Android " + SDK_INT);
+            return false;
+        }
+
+        //If stub.jar is not exist, not use hotpatch
+        if(!hasStubFile(context)){
+            Log.w(TAG, "The stub.jar is not exist");
+            return false;
+        }
+
+        //load the stub.jar first
+        Log.d(TAG, "Apply stub.jar");
+        return patchInternal(context, stubFilePath);
+    }
 
     public static boolean getPatch(Context context) {
+
+        //If stub.jar is exist, check the path.jar
         boolean ret = AssetUtils.hasAssetPatch(context, PATCH_NAME);
         if (ret) {
             try {
-                //copy fix.patch from asset tp app file folder
+                //copy fix.patch from asset tp app file folder for test
                 patchFilePath = AssetUtils.copyAsset(context, PATCH_NAME, context.getFilesDir());
                 Log.d(TAG, "Copy patch file from asset to " + patchFilePath);
                 return true;
             } catch (Exception ex) {
                 Log.d("TAG", "Copy patch failed: " + ex.getMessage());
+                ex.printStackTrace();
                 return false;
             }
         }
@@ -64,32 +87,52 @@ public final class HotFix {
     }
 
     public static void patch(Context context){
-        if(SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            patchInternal(context);
-        }else if(SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
-            patchInternal(context);
-            resolvePatchClass();
-        }else {
-            Log.d(TAG, "Do not support the Android version below: " + SDK_INT);
-        }
+
+        Log.d(TAG, "Apply the patch");
+        patchInternal(context, patchFilePath);
+        testPatch(context);
     }
 
-    public static void patchInternal(Context context) {
+
+    private static boolean hasStubFile(Context context){
+
+        //Check if the stub.jar exist
+        File stubFile = new File(context.getFilesDir(), STUB_NAME);
+        if(stubFile.exists()){
+            stubFilePath = stubFile.getAbsolutePath();
+            return  true;
+        }
+
+        //If not exist, copy from asset
+        boolean ret = AssetUtils.hasAssetPatch(context, STUB_NAME);
+        try {
+            stubFilePath = AssetUtils.copyAsset(context, STUB_NAME, context.getFilesDir());
+        }catch (Exception ex) {
+            Log.d("TAG", "Copy patch failed: " + ex.getMessage());
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean patchInternal(Context context, String filePath) {
 
         //check if the fix.patch exist in file folder
-        if (patchFilePath != null && new File(patchFilePath).exists()) {
-            Log.d(TAG, "Begin patch!");
+        if (filePath != null && new File(filePath).exists()) {
+            Log.d(TAG, "Begin patch: " + filePath);
             try {
-                injectPatch(context, patchFilePath, context.getFilesDir().getAbsolutePath());
+                injectPatch(context, filePath, context.getFilesDir().getAbsolutePath());
                 Log.d(TAG, "End Patch!");
+                return true;
             } catch (Exception ex) {
                 Log.d(TAG, "Patch failed : " + ex.getMessage());
+                ex.printStackTrace();
+                return false;
             }
-            return;
         }
-        Log.d(TAG, "Patch failed  caused by  patch file no exist!");
+        Log.d(TAG, "Patch failed caused by patch file no exist!");
+        return false;
     }
-
 
     private static void injectPatch(Context context, String pathFile, String outFile)
             throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
@@ -104,7 +147,7 @@ public final class HotFix {
         Log.d(TAG, "Get patchDexElements");
         //testPathList(patchDexClassLoader);
 
-         //Get the Element[] dexElements from DexPathList pathList which in APP PatchClassLoacer
+        //Get the Element[] dexElements from DexPathList pathList which in APP PatchClassLoacer
         PathClassLoader appPathClassLoader = (PathClassLoader) context.getClassLoader();
         Object appDexPathList = getPathList(appPathClassLoader);
         Object appDexElements = getDexElements(appDexPathList);
@@ -118,31 +161,9 @@ public final class HotFix {
 
         //Set the new DexElements into app PathClassLoader
         setDexElements(appDexPathList, newDexElements);
-        appPathClassLoader.loadClass("com.example.chengchao.hotfixexample.TestClass");
         Log.d(TAG, "setDexElements in to appDexPathList ");
         //testPathList(appPathClassLoader);
 
-//        Log.d(TAG, "Test TestClass");
-//        try {
-//            Class<?> cl = Class.forName("com.example.chengchao.hotfixexample.TestClass", true, patchDexClassLoader);
-//            Method m = cl.getMethod("show", null);
-//            Object ins = cl.newInstance();
-//            String s = (String) m.invoke(ins);
-//            Log.d(TAG, "Invoke method result: " + s);
-//        } catch (Exception ex) {
-//            Log.d(TAG, "Reflect exception:" + ex.getMessage());
-//            ex.printStackTrace();
-//        }
-
-        //For android 4.x
-        if(SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            Log.d(TAG, "Current android version is :" + SDK_INT);
-
-        }
-    }
-
-    private static void resolvePatchClass(){
-        //TODO
     }
 
     private static void testPathList(ClassLoader clr){
@@ -152,6 +173,35 @@ public final class HotFix {
             Object ins = cl.newInstance();
             String s = (String) m.invoke(ins);
             Log.d(TAG, "Invoke method result: " + s);
+        } catch (Exception ex) {
+            Log.d(TAG, "Reflect exception:" + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    private static void testPatch(Context context){
+
+        testPathList(context.getClassLoader());
+
+        Log.d(TAG, "Test TestClass");
+        try {
+            Class<?> cl = Class.forName("com.example.chengchao.hotfixexample.TestClass", true, context.getClassLoader());
+            Method m = cl.getMethod("show", null);
+            Object ins = cl.newInstance();
+            String s = (String) m.invoke(ins);
+            Log.d(TAG, "Invoke method result: " + s);
+        } catch (Exception ex) {
+            Log.d(TAG, "Reflect exception:" + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+        Log.d(TAG, "Test LibraryTestClass");
+        try {
+            Class<?> cl2 = Class.forName("com.example.testlibrary.LibraryTestClass", true, context.getClassLoader());
+            Method m2 = cl2.getMethod("function", null);
+            Object ins2 = cl2.newInstance();
+            String s2 = (String) m2.invoke(ins2);
+            Log.d(TAG, "Invoke method result: " + s2);
         } catch (Exception ex) {
             Log.d(TAG, "Reflect exception:" + ex.getMessage());
             ex.printStackTrace();
