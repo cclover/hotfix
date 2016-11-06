@@ -43,9 +43,15 @@ public class DexPreBuildTransform extends Transform {
 
         // Get the stubdex module's debug folder which StubClass.class in it.
         def libPath = project.project(':stubdex').buildDir.absolutePath.concat("\\intermediates\\classes\\debug")
-
+        def libPath2 = project.project(':stubdex').buildDir.absolutePath.concat("/intermediates/classes/debug")
         // Add the path intp classpath
         Inject.appendClassPath(libPath)
+        Inject.appendClassPath(libPath2)
+        project.logger.error "================Inject.appendClassPath=========="
+        project.logger.error "Path:" + libPath
+        project.logger.error "Path:" + libPath2
+
+        project.logger.error "================遍历transfrom的inputs！=========="
 
         // 遍历transfrom的inputs
         // inputs有两种类型，一种是目录，一种是jar，需要分别遍历。
@@ -57,7 +63,10 @@ public class DexPreBuildTransform extends Transform {
                         directoryInput.contentTypes, directoryInput.scopes, Format.DIRECTORY)
 
                 //TODO 这里可以对input的文件做处理，比如代码注入！
-                Inject.injectDir(directoryInput.file.absolutePath)
+                Inject.injectDir(directoryInput.file.absolutePath, project)
+
+                project.logger.error "================Inject.injectDir =========="
+                project.logger.error "Dir"+directoryInput.file.absolutePath
 
                 // 将input的目录复制到output指定目录
                 FileUtils.copyDirectory(directoryInput.file, dest)
@@ -71,6 +80,9 @@ public class DexPreBuildTransform extends Transform {
                 String projectName = project.rootProject.name;
                 if(jarPath.endsWith("classes.jar") && jarPath.contains("exploded-aar"+"\\"+projectName)) {
                     Inject.injectJar(jarPath)
+
+                    project.logger.error "================Inject.injectJar =========="
+                    project.logger.error "Jar"+jarPath
                 }
 
                 // 重命名输出文件（同目录copyFile会冲突）

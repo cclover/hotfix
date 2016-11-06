@@ -1,8 +1,11 @@
 package com.example.build.plugin
 
+import com.android.tools.lint.detector.api.Project
 import javassist.ClassPool
 import javassist.CtClass
 import org.apache.commons.io.FileUtils
+import org.gradle.api.Project
+import org.gradle.external.javadoc.internal.PathJavadocOptionFileOption
 
 /**
  * Created by AItsuki on 2016/4/7.
@@ -29,24 +32,38 @@ public class Inject {
      * --- 3. Application
      * @param path 目录的路径
      */
-    public static void injectDir(String path) {
+    public static void injectDir(String path, Project project) {
         pool.appendClassPath(path)
         File dir = new File(path)
         if(dir.isDirectory()) {
             dir.eachFileRecurse { File file ->
+
+                project.logger.error "================Inject.File =========="
+                project.logger.error "File:" + file
 
                 String filePath = file.absolutePath
                 if (filePath.endsWith(".class")
                         && !filePath.contains('R$')
                         && !filePath.contains('R.class')
                         && !filePath.contains("BuildConfig.class")
+                        && !filePath.contains("StubClass.class")
                         // 这里是application的名字，可以通过解析清单文件获得，先写死了
-                        && !filePath.contains("HotFixApplication.class")) {
+                        && !filePath.contains("HotFixApplication.class")
+                        && !filePath.contains("hotfixlib")) {
                     // 这里是应用包名，也能从清单文件中获取，先写死
+
                     int index = filePath.indexOf("com\\example\\chengchao\\hotfixexample")
-                    if (index != -1) {
+                    int index2 = filePath.indexOf("com/example/chengchao/hotfixexample")
+                    if (index != -1 ) {
                         int end = filePath.length() - 6 // .class = 6
                         String className = filePath.substring(index, end).replace('\\', '.').replace('/','.')
+                        project.logger.error "Class:" + className
+                        injectClass(className, path)
+
+                    }else if (index2 != -1 ) {
+                        int end = filePath.length() - 6 // .class = 6
+                        String className = filePath.substring(index2, end).replace('/', '.')
+                        project.logger.error "Class:" + className
                         injectClass(className, path)
 
                     }
@@ -79,8 +96,7 @@ public class Inject {
                 if (className.endsWith(".class")
                         && !className.contains('R$')
                         && !className.contains('R.class')
-                        && !className.contains("BuildConfig.class")
-                        && !className.contains("hotfixlib")) {
+                        && !className.contains("BuildConfig.class")) {
                     className = className.substring(0, className.length()-6)
                     injectClass(className, jarZipDir)
                 }
