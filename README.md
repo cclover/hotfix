@@ -8,6 +8,7 @@ Android hotfix demo
 
 ## Class对象创建
 Android使用Java进行开发，Java运行在VM上(Dalvik/ART，这里以ART为列)。我们编写的每一个class，在VM中都会有一个对应的mirror::class对象，这个class对象会在我们第一次使用这个类时候被加载，一下几种情况会被加载：
+<<<<<<< HEAD
  * 创建了对象的实例
  * 调用了类的静态方法
  * Class.fromName()
