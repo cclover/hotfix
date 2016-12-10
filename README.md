@@ -69,6 +69,11 @@ Demo是自己花了一点时间写的，没有直接使用网上那些框架，�
 这个Demo并没有处理混淆，multi-dex，自动生成patch这些事情。因为后来我改用了Instant Run的原理写了一套新的热修复框架，可以实现不重启更新代码，所以这个项目只是作为学习，所以并没有去完善。和Instant Run的方式比，这个并没有优势，而其7.0的混合编译也会出现问题，兼容性也没有Instant Run好，后面会介绍Instant Run的实现，不过因为公司会用到这个，所以不会开源代码。
 
 
+#Demo
+点击菜单中的Settings可以退出程序
 
+![image](https://github.com/cclover/store/blob/master/images/Screenshot_1481366010.png)
+
+![image](https://github.com/cclover/store/blob/master/images/Screenshot_1481366000.png)
 
 
